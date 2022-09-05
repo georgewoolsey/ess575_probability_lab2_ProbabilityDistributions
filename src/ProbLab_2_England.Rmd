@@ -30,6 +30,7 @@ library(lubridate)
 library(viridis)
 library(scales)
 library(gridExtra)
+library(kableExtra)
 # set seed
 set.seed(10)
 ```
@@ -45,121 +46,210 @@ We commonly represent the following general framework for linking models to data
 
 which represents the probability of obtaining the observation $y_{i}$ given that our model predicts the mean of a distribution $g(\theta , x_{i})$ with variance $\sigma^{2}$. Assume we have count data. What distribution would be a logical choice to model these data? Write out a model for the data.
 
-```{r, warning=F, message=F, fig.width = 10, fig.height = 10, eval=FALSE, include}
-# lambda
-lambda <- seq(0.25, 4, 0.25)
+## Short Answer
 
-# time
-t <- seq(1, 30, 1)
+\textcolor{blue}{The Poisson distribution is the classic distribution for (integer) counts; e.g., things in a plot, things that pass a point, etc.). The Poisson distribution has 1 parameter: $\lambda$ = mean = variance; that is, the ﬁrst and second central moments are equal.}
 
-# x
-x <- numeric(length(t))
-x[1] <- 0.01
+\begin{equation}
+\tag{}
+y_i \sim {\sf Poisson}(g(\theta , x_{i}))
+\end{equation}
 
-# set up function
-fn_x_t <- function(x, t, lambda) {
-  x_t <- lambda * x[t-1] * (1 - x[t-1])
-  return(x_t)
-}
+```{r, warning=F, message=F, fig.width = 10, fig.height = 10}
+pois <- rpois(n = 100000, lambda = 50)
+pois[1:10]
+```
 
-# set up plot grid
-plts <- list()
 
-#loop through lambda values
-for (my_l in 1:length(lambda)) {
-  # assign values of x by t
-  for (my_t in 2:length(t)) {
-    x[my_t] <- fn_x_t(x, my_t, lambda[my_l])
-  }
+# Question 2
+
+We commonly represent the following general framework for linking models to data:
+
+* The mass of carbon in above ground biomass in square m plot.
+* The number of seals on a haul-out beach in the gulf of AK.
+* Presence or absence of an invasive species in forest patches.
+* The probability that a white male will vote republican in a presidential election.
+* The number of individuals in four mutually exclusive income categories.
+* The number of diseased individuals in a sample of 100.
+* The political party affiliation (democrat, republican, independent) of a voter. 
+
+## Short Answer
+
+```{r, warning=F, message=F, echo=FALSE}
+# create data table for answers
+dist_table <- data.frame(
+  rand_var = c(
+    "The mass of carbon in above ground biomass in square m plot."
+    , "The number of seals on a haul-out beach in the gulf of AK."
+    , "Presence or absence of an invasive species in forest patches."
+    , "The probability that a white male will vote republican in a presidential election."
+    , "The number of individuals in four mutually exclusive income categories."
+    , "The number of diseased individuals in a sample of 100."
+    , "The political party affiliation (democrat, republican, independent) of a voter. "
   
-  # set up temp data
-  dta <- data.frame(
-    t
-    , x
   )
-  # plot
-  plts[[my_l]] <-
-    ggplot(dta, aes(x = t, y = x)) +
-      geom_line(
-        size = 1
-        , alpha = 0.8
-      ) +
-      labs(
-        title = bquote(paste(
-            lambda
-            , " = "
-            , .(lambda[my_l])
-          ))
-      ) +
-      xlab("time") +
-      ylab("x") +
-      theme_bw() +
-      theme(
-        legend.position="none"
-        , plot.title = element_text(size = 9)
-        , axis.text =  element_text(size = 8)
-        , axis.title =  element_text(size = 8)
-      )
-}
+  , distrib <- c(
+    "lognormal or gamma"
+    , "Poisson or negative binomial"
+    , "Bernoulli"
+    , "beta"
+    , "multinomial"
+    , "binomial"
+    , "multinomial"
+  
+  )
+  , reason <- c(
+    "non-negative real numbers"
+    , "counts"
+    , "0 or 1"
+    , "0 to 1 real numbers"
+    , "counts in >2 categories"
+    , "counts in 2 categories"
+    , "counts in >2 categories"
+  )
+)
 
-# pass plots to grid extra package
-do.call(gridExtra::grid.arrange, plts)
+# table
+kableExtra::kable(dist_table
+  , caption = "Question 2 Answers"
+  , col.names = c(
+    "Random Variable"
+    , "Distribution"
+    , "Support"
+  )
+) %>% 
+kableExtra::kable_styling(font_size = 11) %>% 
+kableExtra::column_spec(1, bold = TRUE, width = "18em") %>% 
+kableExtra::kable_styling(latex_options = "HOLD_position")
 ```
 
-```{r, warning=F, message=F, fig.width = 8, fig.height = 6, eval=FALSE, include=FALSE}
-rm(list=ls())
-# lambda
-lambda <- seq(1, 4, 0.05)
+# Question 3
 
-# time
-t <- seq(1, 100, 1)
+Find the mean, variance, and 95% quantiles of 10000 random draws from a Poisson distribution with $\lambda$ = 33.
 
-# x
-x <- numeric(length(t))
-x[1] <- 0.01
-
-# set up function
-fn_x_t <- function(x, t, lambda) {
-  x_t <- lambda * x[t-1] * (1 - x[t-1])
-  return(x_t)
-}
-
-# set up empty vector
-  vect_lamda <- c()
-  vect_xt <- c()
-  vect_t <- c()
-
-#loop through lambda values
-for (my_l in 1:length(lambda)) {
-  
-  # assign values of x by t
-  for (my_t in 2:length(t)) {
-    x[my_t] <- fn_x_t(x, my_t, lambda[my_l])
-  }
-  
-  # add vectors together
-  vect_lamda <- c(vect_lamda, rep(lambda[my_l], each=length(t[51:100])))
-  vect_xt <- c(vect_xt, x[51:100])
-  vect_t <- c(vect_t, t[51:100])
-}
-# put vectors together  
-fnl_matrix <- matrix(c(vect_lamda, vect_xt, vect_t), ncol = 3)
-fnl_data <- data.frame(vect_lamda, vect_xt, vect_t)
-
-# plot
-  ggplot(fnl_data, aes(x = vect_lamda, y = vect_xt)) +
-    geom_point(
-      alpha = 0.8
-    ) +
-    labs(
-      title = "Bifurcation Diagram"
-    ) +
-    xlab(expression(lambda)) +
-    ylab(expression(x["t"])) +
-    theme_bw() +
-    theme(
-      legend.position="none"
-    )
-
+```{r, warning=F, message=F}
+pois <- rpois(n = 10000, lambda = 33)
+pois[1:10]
 ```
+
+## Short Answer
+
+\textcolor{blue}{The mean of this example Poisson distribution is: } **`r scales::comma(mean(pois), accuracy = .1)`**
+
+\textcolor{blue}{The variance of this example Poisson distribution is: } **`r scales::comma(var(pois), accuracy = .1)`**
+
+\textcolor{blue}{The $95 \%$ quantile of this example Poisson distribution is: } **`r scales::comma(quantile(pois, probs = c(0.95)), accuracy = .1)`**
+
+
+# Question 4
+
+Simulate `one` observation of survey data with five categories on a Likert scale, i.e. strongly disagree to strongly agree. Assume a sample of `80` respondents and the following probabilities:
+
+a) Strongly disagree = 0.07
+b) Disagree = .13
+c) Neither agree nor disagree = .15
+d) Agree = .23
+e) Strongly agree = .42
+
+
+```{r, warning=F, message=F}
+p <- c(0.07, 0.13, 0.15, 0.23, 0.42)
+N <- 80 
+n <- 1 
+rmultinom(n = n, size = N, prob = p)
+```
+
+
+# Question 5
+
+The average above ground biomass in a grazing allotment of sagebrush grassland is `103 g/m^2`, with a standard deviation of `23`. You clip a `1 m^2` plot. Write out the model for the probability density of the data point. What is the probability density of an observation of `94` assuming the data are normally distributed? Is there a problem using normal distribution? What is the probability that your plot will contain between `90 gm` and `110 gm` of biomass? (For lab report)
+
+## Answer
+
+\begin{equation}
+\tag{}
+y \sim {\sf normal}(103, 23^{2})
+\end{equation}
+
+
+```{r, warning=F, message=F}
+x <- 94
+mean <- 103
+sd <- 23
+d_norm <- dnorm(x = x, mean = mean, sd = sd)
+scales::percent(d_norm, accuracy = .1)
+```
+
+\textcolor{blue}{The probability density of an observation of 94 assuming the data are normally distributed is: } **`r scales::percent(d_norm, accuracy = .1)`**
+
+Is there a problem using normal distribution?
+
+\textcolor{blue}{The normal distrubtion supports random variables from $-\infty$ to $+\infty$ and it is not possible to have negative biomass in a sample area.}
+
+
+```{r, warning=F, message=F}
+samp_low <- 90
+samp_high <- 110
+p_norm <- pnorm(q = c(samp_low, samp_high), mean = mean, sd = sd)
+
+scales::percent(p_norm[2] - p_norm[1], accuracy = .1)
+```
+
+\textcolor{blue}{The probability that the plot will contain between 90 gm and 110 gm of biomass is: } **`r scales::percent(p_norm[2] - p_norm[1], accuracy = .1)`**
+
+# Question 6
+
+The prevalence of a disease in a population is the proportion of the population that is infected with the disease. The prevalence of chronic wasting disease in male mule deer on winter range near Fort Collins, CO is `12 percent`. A sample of `24` male deer included `4` infected individuals. Write out a model that represents how the data arise. What is the probability of obtaining these data conditional on the given prevalence (`p=0.12`)? (For lab report)
+
+## Answer
+
+\begin{equation}
+\tag{}
+y \sim {\sf binomial}(24, 0.12)
+\end{equation}
+
+```{r, warning=F, message=F}
+x <- 4 
+n <- 24
+p <- 0.12
+d_binom <- dbinom(x = x, size = n, prob = p)
+```
+
+\textcolor{blue}{The probability of obtaining these data conditional on the given prevalence (p=0.12) is: } **`r scales::percent(d_binom, accuracy = .1)`**
+
+# Question 7
+
+Researchers know that the true proportion of related age-sex classifications for elk in Rocky Mountain National Park are: Adult females (`p = 0.56`), Yearling males (`p = 0.06`), Bulls (`p = 0.16`), and Calves (`p = 0.22`). What is the probability of obtaining the classification data conditional on the known sex-age population proportions given the following counts?
+
+a) Adult females (count = 65)
+b) Yearling males (count = 4)
+c) Bulls (count = 25)
+d) Calves (count = 26)
+
+## Answer
+
+```{r, warning=F, message=F}
+p <- c(0.56, 0.06, 0.16, 0.22)
+n <- c(65, 4, 25, 26)
+
+d_multinom <- dmultinom(x = n, prob = p)
+```
+
+\textcolor{blue}{The probability of obtaining the classification data conditional on the known sex-age population proportions given the following counts is: } **`r scales::percent(d_multinom, accuracy = .001)`**
+
+# Question 8
+
+Nitrogen fixation by free-living bacteria occurs at a rate of `1.9 g/N/ha/yr` with a standard deviation $\sigma$ of `1.4`. What is the lowest fixation rate that exceeds `2.5 percent` of the distribution? Use a normal distribution for this problem, but discuss why this might not be a good choice.
+
+## Answer
+
+```{r, warning=F, message=F}
+p <- 0.025
+mean <- 1.9
+sd <- 1.4
+
+q_norm <- qnorm(p = p, mean = mean, sd = sd)
+```
+
+\textcolor{blue}{The lowest fixation rate that exceeds $2.5 \%$ of the distribution is: } **`r scales::percent(q_norm, accuracy = .1)`**
 
