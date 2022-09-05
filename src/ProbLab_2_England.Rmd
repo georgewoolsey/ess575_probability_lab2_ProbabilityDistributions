@@ -1,0 +1,165 @@
+---
+title: "ESS 575: Probability Lab 2 - Probability Distributions"
+author: "Team England" 
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  pdf_document:
+    toc: false
+editor_options: 
+  chunk_output_type: console
+knit: (function(inputFile, encoding){ 
+    out_dir <- '../';
+    rmarkdown::render(inputFile, encoding = encoding, output_file=file.path(dirname(inputFile), out_dir, 'ProbLab_2_England.pdf')) 
+  })
+---
+
+Team England:
+
+  - Caroline Blommel 
+  - Carolyn Coyle
+  - Bryn Crosby
+  - George Woolsey
+  
+cblommel@mail.colostate.edu, carolynm@mail.colostate.edu, brcrosby@rams.colostate.edu, george.woolsey@colostate.edu
+
+
+```{r setup, include=FALSE}
+# load packages
+library(tidyverse)
+library(lubridate)
+library(viridis)
+library(scales)
+library(gridExtra)
+# set seed
+set.seed(10)
+```
+
+# Question 1
+
+We commonly represent the following general framework for linking models to data:
+
+\begin{equation}
+\tag{1}
+[y_{i} \mid g(\theta , x_{i}), \sigma^{2}]
+\end{equation}
+
+which represents the probability of obtaining the observation $y_{i}$ given that our model predicts the mean of a distribution $g(\theta , x_{i})$ with variance $\sigma^{2}$. Assume we have count data. What distribution would be a logical choice to model these data? Write out a model for the data.
+
+```{r, warning=F, message=F, fig.width = 10, fig.height = 10, eval=FALSE, include}
+# lambda
+lambda <- seq(0.25, 4, 0.25)
+
+# time
+t <- seq(1, 30, 1)
+
+# x
+x <- numeric(length(t))
+x[1] <- 0.01
+
+# set up function
+fn_x_t <- function(x, t, lambda) {
+  x_t <- lambda * x[t-1] * (1 - x[t-1])
+  return(x_t)
+}
+
+# set up plot grid
+plts <- list()
+
+#loop through lambda values
+for (my_l in 1:length(lambda)) {
+  # assign values of x by t
+  for (my_t in 2:length(t)) {
+    x[my_t] <- fn_x_t(x, my_t, lambda[my_l])
+  }
+  
+  # set up temp data
+  dta <- data.frame(
+    t
+    , x
+  )
+  # plot
+  plts[[my_l]] <-
+    ggplot(dta, aes(x = t, y = x)) +
+      geom_line(
+        size = 1
+        , alpha = 0.8
+      ) +
+      labs(
+        title = bquote(paste(
+            lambda
+            , " = "
+            , .(lambda[my_l])
+          ))
+      ) +
+      xlab("time") +
+      ylab("x") +
+      theme_bw() +
+      theme(
+        legend.position="none"
+        , plot.title = element_text(size = 9)
+        , axis.text =  element_text(size = 8)
+        , axis.title =  element_text(size = 8)
+      )
+}
+
+# pass plots to grid extra package
+do.call(gridExtra::grid.arrange, plts)
+```
+
+```{r, warning=F, message=F, fig.width = 8, fig.height = 6, eval=FALSE, include=FALSE}
+rm(list=ls())
+# lambda
+lambda <- seq(1, 4, 0.05)
+
+# time
+t <- seq(1, 100, 1)
+
+# x
+x <- numeric(length(t))
+x[1] <- 0.01
+
+# set up function
+fn_x_t <- function(x, t, lambda) {
+  x_t <- lambda * x[t-1] * (1 - x[t-1])
+  return(x_t)
+}
+
+# set up empty vector
+  vect_lamda <- c()
+  vect_xt <- c()
+  vect_t <- c()
+
+#loop through lambda values
+for (my_l in 1:length(lambda)) {
+  
+  # assign values of x by t
+  for (my_t in 2:length(t)) {
+    x[my_t] <- fn_x_t(x, my_t, lambda[my_l])
+  }
+  
+  # add vectors together
+  vect_lamda <- c(vect_lamda, rep(lambda[my_l], each=length(t[51:100])))
+  vect_xt <- c(vect_xt, x[51:100])
+  vect_t <- c(vect_t, t[51:100])
+}
+# put vectors together  
+fnl_matrix <- matrix(c(vect_lamda, vect_xt, vect_t), ncol = 3)
+fnl_data <- data.frame(vect_lamda, vect_xt, vect_t)
+
+# plot
+  ggplot(fnl_data, aes(x = vect_lamda, y = vect_xt)) +
+    geom_point(
+      alpha = 0.8
+    ) +
+    labs(
+      title = "Bifurcation Diagram"
+    ) +
+    xlab(expression(lambda)) +
+    ylab(expression(x["t"])) +
+    theme_bw() +
+    theme(
+      legend.position="none"
+    )
+
+```
+
