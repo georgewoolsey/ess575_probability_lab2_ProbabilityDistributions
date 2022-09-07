@@ -35,6 +35,83 @@ library(kableExtra)
 set.seed(10)
 ```
 
+# Question 0
+
+Barn swallows form pair bonds (male/female pairings) in the spring before mating season. Each male/female pair share a nest and care for the offspring of the female. Often a number of the female’s offspring were sired by males other than her mate. We are interested in the random variable, the number of offspring sired by the females mate. Suppose previous literature suggests the probability an offspring’s father is the female’s mate is 0.8. Plot the probability mass function.
+
+## Short Answer
+
+Write a model describing how the data arise.
+
+\begin{equation}
+\tag{}
+y_i \sim {\sf binomial}(5 , 0.8)
+\end{equation}
+
+Plot the probability mass function.
+
+```{r, warning=F, message=F, fig.width = 8, fig.height = 6}
+p <- 0.8
+x <- seq(0, 5, 1)
+y <- dbinom(x = x, size = 5, prob = p)
+ggplot(data.frame(x,y), aes(x = x, y = y)) +
+  geom_point(shape = 1, size = 3) +
+  labs(title = "Probability Mass Function") +
+  xlab("x") +
+  ylab("p(x)") +
+  theme_bw()
+```
+
+Plot the cumulative distribution function for values between -1 and 6 in steps of .1 using pbinom. (Don’t worry about the unfilled circles bit or making a fancy plot. Just get the concepts.) 
+
+```{r, warning=F, message=F, fig.width = 8, fig.height = 6}
+p <- 0.8
+x <- seq(-1, 6, 0.1)
+y <- pbinom(q = x, size = 5, prob = p)
+ggplot(data.frame(x,y), aes(x = x, y = y)) +
+  geom_point(shape = 1, size = 3) +
+  labs(title = "Cumulative Distribution Function") +
+  xlab("x") +
+  ylab("p(x) <= z") +
+  theme_bw()
+```
+
+Write a mathematical expression for the the probability that there are fewer than four offspring sired by the female’s mate and compute the probability using dbinom and pbinom.
+
+```{r, warning=F, message=F}
+p <- 0.8
+x <- seq(0, 3, 1)
+
+sum_dbinom <- sum(dbinom(x = x, size = 5, prob = p))
+p_binom <- pbinom(q = 3, size = 5, prob = p)
+```
+
+\textcolor{blue}{The probability that there are fewer than four offspring sired by the female’s mate: } **`r scales::percent(p_binom, accuracy = .1)`**
+
+Plot the quantile function over the range of zero to 1 in steps of .1 using qbinom. 
+
+```{r, warning=F, message=F, fig.width = 8, fig.height = 6}
+p <- 0.8
+x <- seq(0, 1, 0.1)
+y <- qbinom(p = x, size = 5, prob = p)
+ggplot(data.frame(x,y), aes(x = x, y = y)) +
+  geom_point(shape = 1, size = 3) +
+  labs(title = "Quantile Function") +
+  xlab("p") +
+  ylab("F(z) >= p") +
+  theme_bw()
+```
+
+Compute the smallest number of offspring with a probability equal to or exceeding .3
+
+```{r, warning=F, message=F}
+p <- 0.8
+x <- 0.3
+q_binom <- qbinom(p = x, size = 5, prob = p)
+```
+
+\textcolor{blue}{The smallest number of offspring with a probability equal to or exceeding .3 is: } **`r scales::comma(q_binom, accuracy = 1)`**
+
 # Question 1
 
 We commonly represent the following general framework for linking models to data:
@@ -55,11 +132,10 @@ which represents the probability of obtaining the observation $y_{i}$ given that
 y_i \sim {\sf Poisson}(g(\theta , x_{i}))
 \end{equation}
 
-```{r, warning=F, message=F, fig.width = 10, fig.height = 10}
+```{r, warning=F, message=F}
 pois <- rpois(n = 100000, lambda = 50)
 pois[1:10]
 ```
-
 
 # Question 2
 
@@ -138,7 +214,7 @@ pois[1:10]
 
 \textcolor{blue}{The variance of this example Poisson distribution is: } **`r scales::comma(var(pois), accuracy = .1)`**
 
-\textcolor{blue}{The $95 \%$ quantile of this example Poisson distribution is: } **`r scales::comma(quantile(pois, probs = c(0.95)), accuracy = .1)`**
+\textcolor{blue}{The $95 \%$ quantile of this example Poisson distribution is: } **`r scales::comma(quantile(pois, probs = c(0.025, 0.975)), accuracy = .1)`**
 
 
 # Question 4
@@ -253,3 +329,6 @@ q_norm <- qnorm(p = p, mean = mean, sd = sd)
 
 \textcolor{blue}{The lowest fixation rate that exceeds $2.5 \%$ of the distribution is: } **`r scales::percent(q_norm, accuracy = .1)`**
 
+Is there a problem using normal distribution?
+
+\textcolor{blue}{The normal distrubtion supports random variables from $-\infty$ to $+\infty$ and it is not possible to have negative nitrogen fixation.}
